@@ -1,2 +1,2 @@
-export type Product = {id:string;name:string;category:'Food'|'Grocery'|'Accessories';price:number;stock:number;description:string;active:boolean};
+export type Product = {id:string;name:string;category:'Food'|'Grocery'|'Accessories';price:number;stock:number;description:string;active:boolean;image_path?:string|null};
 export type CartItem = {id:string;quantity:number};

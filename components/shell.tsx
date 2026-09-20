@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {FiShoppingBag,FiMenu,FiX,FiArrowRight,FiMail,FiPhone} from 'react-icons/fi';
+import {FiShoppingBag,FiMenu,FiX,FiMail,FiPhone} from 'react-icons/fi';
+import UserMenu from './user-menu';
 import {FaGithub} from 'react-icons/fa';
 import {useState} from 'react';
 import {motion} from 'framer-motion';
@@ -10,7 +11,7 @@ import {cities,serviceGroups,brand} from '@/lib/config';
 const links=[['/book','Book a ride'],['/marketplace','Marketplace'],['/partner','Earn with us'],['/help','Help']];
 export function Header(){
  const pathname=usePathname(),[open,setOpen]=useState(false);const {items}=useCart();const count=items.reduce((n,i)=>n+i.quantity,0);
- return <header className="header"><div className="container nav"><Link href="/" className="brand" aria-label="Raftaar One home"><span className="logo-mark" aria-hidden="true"/>raftaar<span className="brand-one">one.</span></Link><button className="icon-button mobile-menu" aria-label={open?'Close menu':'Open menu'} aria-expanded={open} onClick={()=>setOpen(!open)}>{open?<FiX/>:<FiMenu/>}</button><nav className={open?'nav-links open':'nav-links'} aria-label="Main navigation">{links.map(([href,label])=><Link aria-current={pathname===href?'page':undefined} key={href} href={href} onClick={()=>setOpen(false)}>{label}</Link>)}</nav><div className="nav-actions"><Link className="cart-link" href="/cart" aria-label={'Cart, '+count+' items'}><FiShoppingBag/><motion.span key={count} initial={{scale:1.5,opacity:0.4}} animate={{scale:1,opacity:1}} transition={{type:'spring',stiffness:400,damping:15}}>{count}</motion.span></Link><Link className="button small" href="/account">My account <FiArrowRight/></Link></div></div></header>;
+ return <header className="header"><div className="container nav"><Link href="/" className="brand" aria-label="Raftaar One home"><span className="logo-mark" aria-hidden="true"/>raftaar<span className="brand-one">one.</span></Link><button className="icon-button mobile-menu" aria-label={open?'Close menu':'Open menu'} aria-expanded={open} onClick={()=>setOpen(!open)}>{open?<FiX/>:<FiMenu/>}</button><nav className={open?'nav-links open':'nav-links'} aria-label="Main navigation">{links.map(([href,label])=><Link aria-current={pathname===href?'page':undefined} key={href} href={href} onClick={()=>setOpen(false)}>{label}</Link>)}</nav><div className="nav-actions"><Link className="cart-link" href="/cart" aria-label={'Cart, '+count+' items'}><FiShoppingBag/><motion.span key={count} initial={{scale:1.5,opacity:0.4}} animate={{scale:1,opacity:1}} transition={{type:'spring',stiffness:400,damping:15}}>{count}</motion.span></Link><UserMenu/></div></div></header>;
 }
 const book=(service:string)=>'/book?service='+encodeURIComponent(service);
 const rides=serviceGroups.find(g=>g.id==='Rides')!.vehicles,loaders=serviceGroups.find(g=>g.id==='Loaders')!.vehicles,buses=serviceGroups.find(g=>g.id==='Buses')!.vehicles;

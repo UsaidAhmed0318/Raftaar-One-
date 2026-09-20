@@ -10,6 +10,7 @@ import {
   applicationSchema,
   statusSchema,
   productSchema,
+  avatarSchema,
 } from "@/lib/validation";
 export const runtime = "nodejs";
 const fail = (error: string, status = 400) =>
@@ -77,6 +78,7 @@ export async function POST(
         p_city: p.city,
         p_phone: p.phone,
         p_details: p.details,
+        p_photo: p.photoPath ?? null,
       });
     } else if (action === "admin") {
       const p = statusSchema.parse(body);
@@ -95,7 +97,11 @@ export async function POST(
         p_price: p.price,
         p_stock: p.stock,
         p_active: p.active,
+        p_image: p.imagePath ?? null,
       });
+    } else if (action === "avatar") {
+      const p = avatarSchema.parse(body);
+      response = await db.rpc("set_avatar", { p_path: p.path });
     } else if (action === "assistant") {
       const { question } = z
         .object({ question: z.string().trim().min(2).max(800) })
@@ -144,6 +150,7 @@ export async function POST(
         "Item unavailable or insufficient stock",
         "Invalid transition",
         "Admin only",
+        "Invalid image",
         "Prices changed. Refresh your cart and confirm the new total.",
       ];
       return fail(

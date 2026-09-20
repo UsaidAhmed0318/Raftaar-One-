@@ -1,4 +1,5 @@
 import {NextRequest,NextResponse} from 'next/server';
+import {siteUrl} from '@/lib/site';
 export const runtime='nodejs';
 type CacheEntry={data:unknown;ts:number};
 const cache=new Map<string,CacheEntry>();
@@ -18,7 +19,7 @@ export async function GET(req:NextRequest){
   url.searchParams.set('addressdetails','1');
   url.searchParams.set('countrycodes','pk');
   url.searchParams.set('limit','8');
-  const site=process.env.NEXT_PUBLIC_SITE_URL||'http://localhost:3000';
+  const site=siteUrl();
   const res=await fetch(url,{headers:{'User-Agent':'RaftaarOne/1.0 ('+site+')','Accept-Language':'en'},signal:AbortSignal.timeout(6000)});
   if(!res.ok) return NextResponse.json({results:[]},{headers:{'Cache-Control':'no-store'}});
   const data=await res.json() as NominatimResult[];

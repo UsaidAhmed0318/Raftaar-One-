@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/site";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
@@ -20,7 +21,7 @@ export async function POST(
   { params }: { params: Promise<{ action: string }> },
 ) {
   const { action } = await params;
-  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  const site = siteUrl();
   if (!site) return fail("Server setup incomplete", 503);
   if (req.headers.get("origin") !== new URL(site).origin)
     return fail("Origin not allowed", 403);

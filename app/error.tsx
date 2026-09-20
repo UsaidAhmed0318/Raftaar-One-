@@ -1,0 +1,2 @@
+'use client';
+export default function ErrorPage({reset}:{error:Error;reset:()=>void}){return <section className="container section"><p className="eyebrow">A small detour</p><h1>Something went wrong.</h1><p>No need to start over. Please try again.</p><button className="button" onClick={reset}>Try again</button></section>;}

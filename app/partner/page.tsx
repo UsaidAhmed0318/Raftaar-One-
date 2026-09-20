@@ -1,0 +1,5 @@
+import PartnerForm from '@/components/partner-form';
+import Link from 'next/link';
+import {Reveal,RevealGroup,RevealItem} from '@/components/motion';
+export const metadata={title:'Become a driver, courier or merchant partner'};
+export default function Page(){return <div className="container"><Reveal className="page-head"><p className="eyebrow">BUILD SOMETHING LOCAL</p><h1>Your next chapter<br/>could start here.</h1><p>Apply as a driver, courier, merchant or fleet operator. Sign in first, then share a few non-sensitive details.</p></Reveal><RevealGroup className="account-grid"><RevealItem><PartnerForm/></RevealItem><RevealItem><aside className="panel"><h2 style={{fontSize:32}}>Real people.<br/>Real opportunity.</h2><p style={{marginTop:24}}>Applications are reviewed by the operator. Vehicle checks, identity verification, contracts and onboarding must be completed separately before any real service starts.</p><div className="notice">No signup payment is requested here. No income, job volume or approval time is guaranteed.</div><Link className="text-link" href="/account">My account & application status</Link></aside></RevealItem></RevealGroup></div>;}

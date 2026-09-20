@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function NotFound(){return <section className="container section"><p className="eyebrow">404 / Off the route</p><h1>This stop does not exist.</h1><p>Let’s get you back to somewhere useful.</p><Link className="button" href="/">Back to home</Link></section>;}

@@ -1,0 +1,6 @@
+import {test,expect} from '@playwright/test';
+test('home has navigation and visible service cards',async({page})=>{await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Your city.');await expect(page.getByRole('link',{name:/Find your next move/})).toBeVisible();await expect(page.locator('.service-card')).toHaveCount(4);});
+test('no horizontal page overflow',async({page})=>{for(const route of ['/','/book','/marketplace','/cart','/account','/partner','/help']){await page.goto(route);const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);expect(overflow,route).toBe(false);}});
+test('empty cart guides users to marketplace',async({page})=>{await page.goto('/cart');await expect(page.getByRole('heading',{name:'A little room for something good.'})).toBeVisible();});
+test('unknown route has useful 404',async({page})=>{await page.goto('/not-a-real-route');await expect(page.getByRole('heading',{name:'This stop does not exist.'})).toBeVisible();});
+test('unauthenticated mutation is rejected',async({request})=>{const response=await request.post('/api/orders',{headers:{Origin:'http://localhost:3000'},data:{}});expect(response.status()).toBe(401);});

@@ -4,5 +4,5 @@ import {launchReady} from '@/lib/config';
 export default function sitemap():MetadataRoute.Sitemap{
  if(!launchReady)return [];
  const base=siteUrl();
- return ['','/book','/marketplace','/partner','/help','/privacy','/terms'].map(route=>({url:base+route,changeFrequency:'weekly',priority:route===''?1:0.7}));
+ return ['','/ride','/book','/marketplace','/partner','/help','/privacy','/terms'].map(route=>({url:base+route,changeFrequency:'weekly',priority:route===''?1:0.7}));
 }

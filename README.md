@@ -27,7 +27,7 @@ Stack: Next.js (App Router) and TypeScript, Supabase (Auth, PostgreSQL, Storage)
 | `app/api/places`, `reverse`, `route` | Address search, reverse geocoding and routing proxies with caching and rate limits |
 | `components/` | UI modules (ride booking, driver dashboard, map, forms, admin) |
 | `lib/` | Config, validation (Zod), Supabase client, geo helpers, ride RPC wrappers, help engine |
-| `supabase/` | SQL: `schema.sql`, `migration-002-images.sql`, `migration-003-rides.sql`, `setup-after-signup.sql`, `seed-demo.sql` |
+| `supabase/` | SQL: `schema.sql`, `migration-002-images.sql`, `migration-003-rides.sql` and `setup-after-signup.sql` |
 | `tests/` | Structural tests and a browser smoke test |
 
 ## Run it locally
@@ -73,6 +73,7 @@ npm run typecheck
 npm test
 npm run build
 npm audit
+npm run test:e2e   # browser smoke tests (needs: npx playwright install chromium)
 ```
 
 `TESTING.md` lists the manual acceptance checklist. `SECURITY.md` lists the security controls and the hardening still recommended.

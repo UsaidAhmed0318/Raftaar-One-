@@ -9,3 +9,5 @@ tsconfig.tsbuildinfo
 *.tmp
 !.env.production
 live-*.png
+next-env.d.ts
+supabase/.temp

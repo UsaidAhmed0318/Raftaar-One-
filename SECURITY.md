@@ -1,6 +1,6 @@
 # Security review and operating limits
 
-This source has not been executed, penetration-tested or independently audited. It is not a security certification.
+This project has automated structural and database-logic checks, but it has not had an independent penetration test or audit. It is not a security certification.
 
 ## Implemented controls
 
@@ -17,7 +17,9 @@ This source has not been executed, penetration-tested or independently audited. 
 | Duplicate successful submission protection | Unique per-user request UUID |
 | Restricted status transitions | change_status |
 | Stock restoration before-dispatch cancellation | change_status order cancellation |
-| Non-public AI credential | Server environment only |
+| Registered-driver enforcement | Driver functions check is_active_driver; rides and offers tables are closed to browsers |
+| Ride privacy | Nearby driver positions rounded to about 100 m; phone numbers revealed only after a driver is chosen |
+| Storage limits | Per-user folders for avatars and partner photos; admin-only product images; size and type limits |
 | Per-account write/assistant minute buckets | consume_limit |
 | Sensitive screens excluded from indexing | Metadata and robots |
 
@@ -27,7 +29,7 @@ Supabase client sessions use browser local storage. XSS could expose those token
 
 Authentication password rules, breached-password controls, CAPTCHA, SMTP and provider rate limits are configured in Supabase, not the frontend form. The 12-character HTML minimum alone is not server enforcement. Enforce admin MFA at the data/API layer; an MFA screen by itself is insufficient.
 
-The request body is size-checked after reading it. Configure a reverse proxy/WAF request-size limit and timeouts to stop oversized payloads before allocation. Add per-IP abuse controls, daily per-account quotas, global AI spend budgets and suspicious-account monitoring. Current counters are per authenticated user and per minute; distributed signup attacks need additional controls.
+The request body is size-checked after reading it. Configure a reverse proxy/WAF request-size limit and timeouts to stop oversized payloads before allocation. Add per-IP abuse controls, daily per-account quotas, global request budgets and suspicious-account monitoring. Current counters are per authenticated user and per minute; distributed signup attacks need additional controls.
 
 Minute counters require a scheduled cleanup. Run only through trusted database operations:
 
@@ -37,7 +39,7 @@ delete from public.rate_limits where bucket < now() - interval '2 days';
 
 Do not expose raw SQL or service-role access to users. Security-definer functions set search_path and use fixed table names, but review grants and function ownership after every migration. Restrict CREATE on public schema for untrusted database roles. Database admins are privileged and can read data; apply least privilege and access logging operationally.
 
-Avoid logging passwords, tokens, addresses, AI prompts or full database error payloads. Current API errors are deliberately generic. Set a support incident response process and redact any later error-monitoring integration.
+Avoid logging passwords, tokens, addresses, help questions or full database error payloads. Current API errors are deliberately generic. Set a support incident response process and redact any later error-monitoring integration.
 
 Use HTTPS, review HSTS with your domain configuration, rotate credentials, maintain backups and test restoration. Keep demo and production projects separate. The launch-ready flag is not access control.
 

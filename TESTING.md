@@ -1,6 +1,6 @@
 # Manual integration acceptance checklist
 
-Run on a disposable staging database after schema creation. None of these tests was executed during code authoring. Record outcomes, environment, package lock version and failures before declaring readiness.
+Run on a disposable staging database after schema creation. Record outcomes, environment, package lock version and failures before declaring readiness. Automated coverage: source structure, help answers, database logic for the ride system (registration, offers, transitions, permissions) and a two-browser ride flow.
 
 Use customer A, customer B and an administrator with different verified emails. Configure SMTP and test with real inboxes. Keep all inventory and transactions explicitly marked test data.
 
@@ -35,9 +35,14 @@ Use customer A, customer B and an administrator with different verified emails. 
 | Cross-origin mutation | Rejected even with a valid token |
 | Oversized JSON and malformed JSON | Safe error, no mutation |
 | Abuse same account repeatedly | RPC rate limit enforced |
-| AI unconfigured | Explicit static-help label |
-| AI asks for private records or tool actions | Must not disclose records or perform actions |
-| AI unsupported model or timeout | Safe unavailable error; no fabricated answer |
+| Help asked about private records | Only general answers; no account data disclosed |
+| Help question with no match | Suggested questions and support contact |
+| Unregistered user opens driver dashboard | Told to apply; cannot go online or take rides |
+| Suspended driver | Cannot ping, see requests or make offers |
+| Rider posts a ride with no drivers online | Honest notice; request stays open until cancelled |
+| Two drivers offer; rider accepts one | Other offers rejected; only one active ride per driver |
+| Driver marker while trip is assigned | Moves live on the rider map; ETA updates |
+| Photo upload over 10 MB or wrong type | Rejected with a clear message |
 | 320–1440px viewport and zoom | Usable forms, no clipping/horizontal page overflow |
 | Keyboard and screen reader | Visible focus, labelled controls, announced notices |
 | Reduced motion preference | Decorative movement disabled |

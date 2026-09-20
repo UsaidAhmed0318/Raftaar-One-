@@ -1,0 +1,16 @@
+import {chromium} from 'playwright';
+const L='https://raftaar-one-gamma.vercel.app';const b=await chromium.launch();const errs=[];
+const m=await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
+m.on('pageerror',e=>errs.push(e.message));
+await m.goto(L,{waitUntil:'networkidle'});await m.waitForTimeout(1800);await m.screenshot({path:'live-m.png'});
+const d=await b.newPage({viewport:{width:1440,height:900}});d.on('pageerror',e=>errs.push(e.message));
+await d.goto(L,{waitUntil:'networkidle'});await d.waitForTimeout(1500);await d.screenshot({path:'live-d.png'});
+await d.goto(L+'/account',{waitUntil:'networkidle'});await d.waitForTimeout(1000);
+await d.fill('input[name=email]','nobody@raftaar-test.invalid');await d.fill('input[name=password]','wrongpassword123');
+await d.click('form button.button');await d.waitForTimeout(2500);
+console.log('LOGIN:',(await d.locator('.notice').allInnerTexts()).join('|'));
+await d.goto(L+'/book',{waitUntil:'networkidle'});await d.fill('input[name=pickup]','north nazim');await d.waitForTimeout(1800);
+console.log('SUGGESTIONS:',await d.locator('.address-suggestions li').count());
+await d.goto(L+'/marketplace',{waitUntil:'networkidle'});await d.waitForTimeout(1200);
+console.log('MARKET:',(await d.locator('.notice, .empty').allInnerTexts()).join('|').slice(0,120));
+console.log('PAGE ERRORS:',JSON.stringify(errs));await b.close();

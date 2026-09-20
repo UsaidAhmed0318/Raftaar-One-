@@ -1,3 +1,4 @@
+import { supabaseUrl, supabaseKey } from "@/lib/public-config";
 import { siteUrl } from "@/lib/site";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -29,8 +30,8 @@ export async function POST(
     return fail("JSON required", 415);
   const token = req.headers.get("authorization")?.replace(/^Bearer /, "");
   if (!token) return fail("Sign in required", 401);
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = supabaseUrl,
+    key = supabaseKey;
   if (!url || !key) return fail("Database setup pending", 503);
   const db = createClient(url, key, {
     global: { headers: { Authorization: "Bearer " + token } },

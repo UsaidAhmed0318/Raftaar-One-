@@ -1,8 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { supabaseUrl, supabaseKey } from './public-config';
 let client: SupabaseClient | undefined;
 export function browserDB() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = supabaseUrl;
+  const key = supabaseKey;
   if (!url || !key) throw new Error('Database setup pending. Follow README before using accounts or bookings.');
   return client ??= createClient(url,key);
 }

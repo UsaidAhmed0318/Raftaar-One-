@@ -1,11 +1,11 @@
 'use client';
 import Link from 'next/link';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {FiArrowRight,FiUser,FiShield,FiLogOut} from 'react-icons/fi';
+import {FiArrowRight,FiUser,FiShield,FiLogOut,FiNavigation} from 'react-icons/fi';
 import {AnimatePresence,motion} from 'framer-motion';
 import {browserDB} from '@/lib/supabase';
 import {Avatar} from './avatar';
-type Me={name:string;email:string;avatar:string|null;admin:boolean};
+type Me={name:string;email:string;avatar:string|null;admin:boolean;driver:boolean};
 export default function UserMenu(){
  const [me,setMe]=useState<Me|null>(null),[ready,setReady]=useState(false),[open,setOpen]=useState(false);const box=useRef<HTMLDivElement>(null);
  const load=useCallback(async()=>{
@@ -13,7 +13,8 @@ export default function UserMenu(){
    const db=browserDB();const {data:{session}}=await db.auth.getSession();
    if(!session){setMe(null);return;}
    const {data:profile}=await db.from('profiles').select('full_name,avatar_path,role').eq('id',session.user.id).maybeSingle();
-   setMe({name:profile?.full_name||String(session.user.user_metadata?.full_name||''),email:session.user.email||'',avatar:profile?.avatar_path||null,admin:profile?.role==='admin'});
+   let driver=false;try{const info=await db.rpc('my_driver');driver=!!info.data&&info.data.status==='active';}catch{/* not a driver */}
+   setMe({name:profile?.full_name||String(session.user.user_metadata?.full_name||''),email:session.user.email||'',avatar:profile?.avatar_path||null,admin:profile?.role==='admin',driver});
   }catch{setMe(null);}finally{setReady(true);}
  },[]);
  useEffect(()=>{
@@ -32,7 +33,7 @@ export default function UserMenu(){
   <AnimatePresence>{open&&<motion.div role="menu" className="user-dropdown" initial={{opacity:0,y:-6,scale:.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-6,scale:.97}} transition={{duration:.16}}>
    <div className="user-head"><Avatar path={me.avatar} name={me.name||me.email} size={46}/><div><strong>{me.name||'Your account'}</strong><small>{me.email}</small></div></div>
    <Link role="menuitem" href="/account" onClick={()=>setOpen(false)}><FiUser/> My account & photo</Link>
-   {me.admin&&<Link role="menuitem" href="/admin" onClick={()=>setOpen(false)}><FiShield/> Admin console</Link>}
+   {me.driver&&<Link role="menuitem" href="/driver" onClick={()=>setOpen(false)}><FiNavigation/> Driver dashboard</Link>}{me.admin&&<Link role="menuitem" href="/admin" onClick={()=>setOpen(false)}><FiShield/> Admin console</Link>}
    <button role="menuitem" onClick={()=>void signOut()}><FiLogOut/> Sign out</button>
   </motion.div>}</AnimatePresence>
  </div>;

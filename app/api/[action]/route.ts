@@ -79,6 +79,9 @@ export async function POST(
         p_phone: p.phone,
         p_details: p.details,
         p_photo: p.photoPath ?? null,
+        p_vehicles: p.vehicles ?? [],
+        p_model: p.vehicleModel ?? "",
+        p_plate: p.vehiclePlate ?? "",
       });
     } else if (action === "admin") {
       const p = statusSchema.parse(body);
@@ -110,7 +113,7 @@ export async function POST(
       if (limit.error || !limit.data)
         return fail("Please wait a minute before asking again", 429);
       const knowledge =
-        "Raftaar One is a prelaunch Pakistan platform by Usaid Ahmed. Services: rides (Rickshaw, Bike, Economy car, Comfort car, Premium car, Protocol car), Parcel delivery, loaders (Rickshaw loader, Suzuki pickup, Shehzore pickup, Mazda loader, Mini truck), Truck freight, and unconfirmed bus/coach enquiries (Luxury coach, Hiace van, Coaster, Mini bus). Proposed pilot cities: Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad; actual availability needs operator confirmation. Orders currently use cash on delivery only. Sample delivery fee is PKR 150, configurable in database before launch. Browse /marketplace, cart /cart, account /account, bookings /book, partner /partner. A booking request is not a confirmed ride or ticket. No Daewoo affiliation or live bus ticket API. No GPS tracking or automatic driver dispatch. Do not promise earnings, timelines, availability, refunds or safety. Help contact: usaidahmeddon@gmail.com. Never request password, OTP, card, CNIC or private addresses in chat. Only account page shows authenticated records. Refund/cancellation terms require operator approval before launch.";
+        "Raftaar One is a prelaunch Pakistan platform by Usaid Ahmed. Services: rides (Rickshaw, Bike, Economy car, Comfort car, Premium car, Protocol car), Parcel delivery, loaders (Rickshaw loader, Suzuki pickup, Shehzore pickup, Mazda loader, Mini truck), Truck freight, and unconfirmed bus/coach enquiries (Luxury coach, Hiace van, Coaster, Mini bus). Rides use a live map: the rider names a fare, registered and admin-approved drivers nearby reply with offers, and the rider picks one and tracks the driver. Only approved drivers can take rides. The service covers all of Pakistan but availability depends on registered drivers being online nearby; cargo and bus requests need operator confirmation. Orders currently use cash on delivery only. Sample delivery fee is PKR 150, configurable in database before launch. Browse /marketplace, cart /cart, account /account, bookings /book, partner /partner. A booking request is not a confirmed ride or ticket. No Daewoo affiliation or live bus ticket API. Ride requests are matched by fare offers from registered drivers, with live driver location on the map once a driver is chosen; there is no automatic assignment and no online payment (cash to the driver). Do not promise earnings, timelines, availability, refunds or safety. Help contact: usaidahmeddon@gmail.com. Never request password, OTP, card, CNIC or private addresses in chat. Only account page shows authenticated records. Refund/cancellation terms require operator approval before launch.";
       if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_MODEL) {
         return NextResponse.json({
           answer: "Help mode (AI not configured): " + knowledge,
@@ -151,6 +154,8 @@ export async function POST(
         "Invalid transition",
         "Admin only",
         "Invalid image",
+        "Choose the vehicle types you drive",
+        "Vehicle model and plate number are required",
         "Prices changed. Refresh your cart and confirm the new total.",
       ];
       return fail(

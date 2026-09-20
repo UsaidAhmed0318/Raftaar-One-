@@ -1,5 +1,5 @@
 export const brand = { name: 'Raftaar One', owner: 'Usaid Ahmed', email: 'usaidahmeddon@gmail.com', phone: '+923181014996', github: 'UsaidAhmed0318' };
-export const cities = ['Karachi','Lahore','Islamabad','Rawalpindi','Faisalabad'] as const;
+export const cities = ['Karachi','Lahore','Islamabad','Rawalpindi','Faisalabad','Multan','Peshawar','Quetta','Hyderabad','Sialkot','Gujranwala','Bahawalpur','Sargodha','Sukkur','Larkana','Sheikhupura','Rahim Yar Khan','Jhang','Dera Ghazi Khan','Gujrat','Sahiwal','Wah Cantonment','Mardan','Kasur','Okara','Mingora','Nawabshah','Chiniot','Kotri','Kamoke','Hafizabad','Sadiqabad','Mirpur Khas','Burewala','Kohat','Khanewal','Dera Ismail Khan','Turbat','Muzaffargarh','Abbottabad','Mandi Bahauddin','Shikarpur','Jacobabad','Jhelum','Khairpur','Khuzdar','Pakpattan','Hub','Daska','Gojra','Muridke','Bahawalnagar','Jaranwala','Chishtian','Muzaffarabad','Gilgit','Skardu','Attock','Vehari','Kot Addu','Wazirabad','Dadu','Mansehra','Swabi','Charsadda','Nowshera','Bannu','Chakwal','Layyah','Lodhran','Toba Tek Singh','Bhakkar','Jauharabad','Haripur','Murree','Gwadar','Sibi','Zhob','Other'] as const;
 export const services = ['Rickshaw','Bike','Economy car','Comfort car','Premium car','Protocol car','Parcel','Rickshaw loader','Suzuki pickup','Shehzore pickup','Mazda loader','Mini truck','Truck','Luxury coach','Hiace van','Coaster','Mini bus'] as const;
 export type ServiceName = typeof services[number];
 export type ServiceGroup = { id: string; title: string; tag: string; color: string; text: string; vehicles: { name: ServiceName; note: string }[] };
@@ -27,6 +27,10 @@ export const serviceGroups: ServiceGroup[] = [
     { name: 'Coaster', note: 'Mid-size groups, tours and events' },
     { name: 'Mini bus', note: 'Larger groups and events' } ] }
 ];
+export const rideServices = ['Rickshaw','Bike','Economy car','Comfort car','Premium car','Protocol car'] as const;
+export type RideService = typeof rideServices[number];
+export const isRide = (service: string): service is RideService => (rideServices as readonly string[]).includes(service);
+export const hrefFor = (service: string) => (isRide(service) ? '/ride?service=' : '/book?service=') + encodeURIComponent(service);
 export const groupOf = (service: string) => serviceGroups.find(g => g.vehicles.some(v => v.name === service));
 export const isEnquiry = (service: string) => groupOf(service)?.id === 'Buses';
 export function money(value: number) { return new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR',maximumFractionDigits:0}).format(value); }

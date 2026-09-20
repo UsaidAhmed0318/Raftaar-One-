@@ -8,3 +8,4 @@ test-results
 tsconfig.tsbuildinfo
 *.tmp
 !.env.production
+live-*.png

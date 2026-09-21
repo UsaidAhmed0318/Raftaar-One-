@@ -9,7 +9,7 @@ test('home shows the hero and main actions', async ({page, isMobile}) => {
 
 test('every public page fits the screen without sideways scrolling', async ({page}) => {
   test.setTimeout(180_000);
-  for (const route of ['/', '/ride', '/driver', '/book', '/marketplace', '/cart', '/account', '/partner', '/help', '/privacy', '/terms']) {
+  for (const route of ['/', '/ride', '/driver', '/book', '/marketplace', '/cart', '/account', '/partner', '/help', '/contact', '/privacy', '/terms']) {
     await page.goto(route);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     expect(overflow, route).toBe(false);
@@ -23,9 +23,9 @@ test('intro loader plays on a full load and then clears', async ({page}) => {
   await expect(page.locator('main')).toBeVisible();
 });
 
-test('ride and driver pages ask visitors to sign in', async ({page}) => {
+test('ride page lets guests plan a trip and driver page asks to sign in', async ({page}) => {
   await page.goto('/ride');
-  await expect(page.getByRole('heading', {name: 'Sign in to request a ride'})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Sign in to find a driver'})).toBeVisible();
   await page.goto('/driver');
   await expect(page.getByRole('heading', {name: 'Sign in to drive'})).toBeVisible();
 });

@@ -13,7 +13,7 @@
 }
 .boot-exit {
   clip-path: inset(0 0 100% 0);
-  transition: clip-path .8s cubic-bezier(.7, 0, .2, 1) .15s;
+  transition: clip-path .45s cubic-bezier(.7, 0, .2, 1);
 }
 .boot-exit .boot-logo {
   opacity: 0;
@@ -94,8 +94,8 @@
 .logo-tilt .shine {
   position: absolute;
   inset: 0;
-  -webkit-mask: url(/images/logo-transparent.png) center / 100% 100% no-repeat;
-  mask: url(/images/logo-transparent.png) center / 100% 100% no-repeat;
+  -webkit-mask: url(/images/logo-transparent.webp) center / 100% 100% no-repeat;
+  mask: url(/images/logo-transparent.webp) center / 100% 100% no-repeat;
   background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .95) 50%, transparent 62%) 0 0 / 260% 100%;
   animation: bootShine 2.4s ease-in-out infinite;
 }
@@ -320,3 +320,5 @@
   .boot-stage { --s: .56; height: 150px; }
   .boot-logo { width: 120px; }
 }
+
+html[data-booted] .boot { display: none !important; }

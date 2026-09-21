@@ -105,7 +105,7 @@ export default function PlacePicker({label,kind,value,onChange,bias,onPinMode,pi
     <label className="place-label"><span className={'place-dot ' + kind} aria-hidden="true">{kind === 'pickup' ? 'A' : 'B'}</span>{label}</label>
     <div className="place-input">
       <FiSearch aria-hidden="true"/>
-      <input value={text} onChange={e => edit(e.target.value)} onFocus={showRecent} onKeyDown={onKey} disabled={disabled} placeholder={kind === 'pickup' ? 'Search area, street or house number' : 'Where to? Search anywhere in Pakistan'} autoComplete="off" role="combobox" aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-invalid={!value && text.length > 2}/>
+      <input aria-label={label + ' location'} value={text} onChange={e => edit(e.target.value)} onFocus={showRecent} onKeyDown={onKey} disabled={disabled} placeholder={kind === 'pickup' ? 'Search area, street or house number' : 'Where to? Search anywhere in Pakistan'} autoComplete="off" role="combobox" aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-invalid={!value && text.length > 2}/>
       {loading && <span className="address-spinner" aria-hidden="true"/>}
       {open && items.length > 0 && <ul id={listId} className="place-list" role="listbox">
         {items.map((s, i) => <li key={s.id + i} role="option" aria-selected={i === active} className={i === active ? 'active' : ''} onMouseDown={e => { e.preventDefault(); choose(s); }}>

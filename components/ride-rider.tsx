@@ -246,7 +246,7 @@ export default function RideRider() {
   const center = !ride && pickup && !dest ? {lat:pickup.lat, lng:pickup.lng} : null;
 
   // ---- render -----------------------------------------------------------------
-  if (phase === 'loading') return <div className="skeleton tall"/>;
+  if (phase === 'loading') return <div className="skeleton ride-loading" aria-busy="true" aria-label="Loading the ride screen"/>;
 
   const status = ride?.status;
   const eta = trackRoute ? formatDuration(trackRoute.duration_s) : null;

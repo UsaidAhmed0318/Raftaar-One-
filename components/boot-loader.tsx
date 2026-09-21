@@ -27,8 +27,11 @@ export default function BootLoader() {
   const label = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    let seen = false;
+    try { seen = sessionStorage.getItem('raftaar-booted') === '1'; sessionStorage.setItem('raftaar-booted', '1'); } catch { /* storage unavailable */ }
+    if (seen) { setPhase('gone'); return; }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const minimum = reduced ? 500 : 2200;
+    const minimum = reduced ? 400 : 1100;
     const start = 0; // performance.now() counts from navigation start, so the timer includes download time
     let loaded = document.readyState === 'complete';
     let progress = 0, raf = 0, leaving = false;
@@ -40,7 +43,7 @@ export default function BootLoader() {
       if (leaving) return;
       leaving = true;
       setPhase('exit');
-      window.setTimeout(() => { setPhase('gone'); document.documentElement.style.overflow = ''; }, reduced ? 200 : 900);
+      window.setTimeout(() => { setPhase('gone'); document.documentElement.style.overflow = ''; }, reduced ? 150 : 500);
     };
     const frame = (now: number) => {
       const elapsed = now - start;
@@ -53,8 +56,8 @@ export default function BootLoader() {
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
-    const failsafe = window.setTimeout(leave, 9000);
-    const rotate = window.setInterval(() => setMessage(m => (m + 1) % MESSAGES.length), 700);
+    const failsafe = window.setTimeout(leave, 4000);
+    const rotate = window.setInterval(() => setMessage(m => (m + 1) % MESSAGES.length), 450);
     return () => { cancelAnimationFrame(raf); clearTimeout(failsafe); clearInterval(rotate); window.removeEventListener('load', onLoad); document.documentElement.style.overflow = ''; };
   }, []);
 
@@ -68,7 +71,7 @@ export default function BootLoader() {
     <div className="boot-main">
       <div className="boot-logo" aria-hidden="true">
         <i className="ring r1"/><i className="ring r2"/>
-        <div className="logo-tilt"><img src="/images/logo-transparent.png" alt="" width="291" height="230" decoding="async" fetchPriority="high"/><span className="shine"/></div>
+        <div className="logo-tilt"><img src="/images/logo-transparent.webp" alt="" width="291" height="230" decoding="async" fetchPriority="high"/><span className="shine"/></div>
       </div>
 
       <div className="boot-stage" aria-hidden="true">
@@ -79,7 +82,7 @@ export default function BootLoader() {
               <div className="truck-shadow"/>
               <Cuboid x={4} y={78} w={232} h={12} d={46} cls="chassis"/>
               <Cuboid x={0} y={4} w={166} h={76} d={68} cls="cargo" faces={{
-                f: <><span className="cargo-stripe"/><img className="cargo-logo" src="/images/logo-transparent.png" alt="" width="291" height="230"/><em>CARGO · PAKISTAN</em></>,
+                f: <><span className="cargo-stripe"/><img className="cargo-logo" src="/images/logo-transparent.webp" alt="" width="291" height="230"/><em>CARGO · PAKISTAN</em></>,
                 t: <span className="cargo-top"/>, l: <span className="cargo-doors"/>, k: <span className="cargo-doors"/>
               }}/>
               <Cuboid x={170} y={26} w={66} h={54} d={64} cls="cab" faces={{

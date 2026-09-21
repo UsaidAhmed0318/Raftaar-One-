@@ -7,7 +7,7 @@ import {Reveal,RevealGroup,RevealItem} from '@/components/motion';
 
 export const metadata = {
   title: 'Contact us · WhatsApp, call or email',
-  description: 'Talk to Raftaar One on WhatsApp, phone or email. Book a delivery, loader or truck, join as a driver or courier, or list your shop. Riders, customers and partners across Pakistan.',
+  description: 'Talk to Raftaar One on WhatsApp, phone or email. Book a delivery, loader or truck, join as a driver, or list your shop anywhere in Pakistan.',
   alternates: {canonical: '/contact'}
 };
 
@@ -20,7 +20,7 @@ const topics: [string, string, string][] = [
 
 export default function Page() {
   return <div className="container contact-page">
-    <Reveal className="page-head"><p className="eyebrow">WE REPLY FAST</p><h1>Talk to a real person.</h1><p>Riders, customers, drivers, couriers and shop owners: message us on WhatsApp, call, or email. Never send passwords, OTPs, card details or CNIC numbers.</p></Reveal>
+    <div className="page-head intro"><p className="eyebrow">WE REPLY FAST</p><h1>Talk to a real person.</h1><p>Riders, customers, drivers, couriers and shop owners: message us on WhatsApp, call, or email. Never send passwords, OTPs, card details or CNIC numbers.</p></div>
     <RevealGroup className="contact-actions">
       <RevealItem><a className="contact-card wa" href={whatsappLink('Hello Raftaar One, I need help with: ')} target="_blank" rel="noopener noreferrer"><FaWhatsapp aria-hidden="true"/><strong>WhatsApp</strong><small>Fastest way to reach us. Send text or a voice note.</small></a></RevealItem>
       <RevealItem><a className="contact-card" href={telLink}><FiPhone aria-hidden="true"/><strong>Call {brand.phone.replace('+92', '0')}</strong><small>Tap to call from your phone.</small></a></RevealItem>

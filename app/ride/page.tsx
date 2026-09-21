@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import RideRider from '@/components/ride-rider';
-import {Reveal} from '@/components/motion';
 export const metadata = {title:'Book a ride', description:'Set your own fare, get offers from registered drivers and track your ride live on the map anywhere in Pakistan.', alternates:{canonical:'/ride'}};
 export default function Page() {
-  return <div className="container ride-page"><Reveal className="page-head slim"><p className="eyebrow">RIDES ACROSS PAKISTAN</p><h1>Name your fare.<br/>Track your ride.</h1></Reveal><Reveal delay={0.06}><RideRider/></Reveal></div>;
+  return <div className="container ride-page"><div className="page-head slim intro"><p className="eyebrow">RIDES ACROSS PAKISTAN</p><h1>Name your fare.<br/>Track your ride.</h1></div><div className="intro" style={{'--d':'0.06s'} as React.CSSProperties}><RideRider/></div><section className="ride-seo"><h2>Book a ride anywhere in Pakistan</h2><p>Request a rickshaw, bike, economy, comfort, premium or protocol (VIP) car in Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, Quetta and other cities. Search any address, see the route and a fare estimate, then set the fare you want to pay.</p><p>Registered drivers who are online near your pickup can accept your fare or reply with their own. You choose the driver, follow them live on the map and pay cash at the end. If no driver is online nearby, raise your fare or try another vehicle type.</p><p>Need to send a parcel, hire a loader or book a truck or bus instead? Use the <Link className="text-link" href="/book">request form for parcels, loaders, trucks and buses</Link>, or <Link className="text-link" href="/contact">contact us on WhatsApp</Link>.</p></section></div>;
 }

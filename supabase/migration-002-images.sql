@@ -6,10 +6,10 @@ alter table public.profiles add column if not exists avatar_path text;
 alter table public.products add column if not exists image_path text;
 alter table public.applications add column if not exists photo_path text;
 
--- Public-read image buckets; uploads are limited by size, type and per-user folder policies below.
+-- avatars and products are public-read (shown to other people). partners is PRIVATE: application photos are visible only to the applicant and admins. Uploads are limited by size, type and per-user folder policies below.
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values
  ('avatars','avatars',true,2097152,array['image/jpeg','image/png','image/webp']),
- ('partners','partners',true,3145728,array['image/jpeg','image/png','image/webp']),
+ ('partners','partners',false,3145728,array['image/jpeg','image/png','image/webp']),
  ('products','products',true,3145728,array['image/jpeg','image/png','image/webp'])
 on conflict(id) do update set public=excluded.public,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
 
@@ -27,6 +27,8 @@ drop policy if exists partners_delete on storage.objects;
 create policy partners_insert on storage.objects for insert to authenticated with check (bucket_id='partners' and (storage.foldername(name))[1]=auth.uid()::text);
 create policy partners_update on storage.objects for update to authenticated using (bucket_id='partners' and (storage.foldername(name))[1]=auth.uid()::text) with check (bucket_id='partners' and (storage.foldername(name))[1]=auth.uid()::text);
 create policy partners_delete on storage.objects for delete to authenticated using (bucket_id='partners' and (storage.foldername(name))[1]=auth.uid()::text);
+drop policy if exists partners_select on storage.objects;
+create policy partners_select on storage.objects for select to authenticated using (bucket_id='partners' and ((storage.foldername(name))[1]=auth.uid()::text or public.is_admin()));
 
 -- Only admins manage product images.
 drop policy if exists products_img_insert on storage.objects;

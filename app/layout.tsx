@@ -9,7 +9,7 @@ import JsonLd from '@/components/json-ld';
 import {brand,launchReady} from '@/lib/config';
 const ADSENSE_ID='ca-pub-3057973684835998';
 const TITLE='Raftaar One | Rides, delivery, loaders & buses across Pakistan';
-const DESCRIPTION='Book rickshaw, bike and car rides, send parcels, hire loaders and trucks, and request buses and coaches anywhere in Pakistan. Set your own fare and track your ride live on the map. Pakistan ka apna ride, delivery aur loader app.';
+const DESCRIPTION='Book rickshaw, bike and car rides, parcel delivery, loaders, trucks and buses across Pakistan. Set your own fare and track your ride live.';
 export const metadata:Metadata={
  metadataBase:new URL(siteUrl()),
  title:{default:TITLE,template:'%s | Raftaar One'},
@@ -21,6 +21,7 @@ export const metadata:Metadata={
  publisher:'Raftaar One',
  category:'transportation',
  formatDetection:{telephone:true,email:true,address:false},
+ alternates:{canonical:'./'},
  manifest:'/manifest.webmanifest',
  icons:{icon:'/images/logo.png',apple:'/images/logo.png'},
  robots:{index:launchReady,follow:launchReady},
@@ -31,7 +32,7 @@ export const metadata:Metadata={
 export const viewport:Viewport={themeColor:'#0a8288',width:'device-width',initialScale:1};
 export default function Layout({children}:{children:React.ReactNode}){
  const site=siteUrl();
- return <html lang="en-PK"><head><script async src={'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+ADSENSE_ID} crossOrigin="anonymous"/></head><body><noscript><style>{`.boot{display:none!important}`}</style></noscript>
+ return <html lang="en-PK" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{__html:"try{if(sessionStorage.getItem('raftaar-booted')==='1')document.documentElement.setAttribute('data-booted','1')}catch(e){}"}}/><script async src={'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+ADSENSE_ID} crossOrigin="anonymous"/></head><body><noscript><style>{`.boot{display:none!important}`}</style></noscript>
  <JsonLd data={{'@context':'https://schema.org','@graph':[
   {'@type':'Organization','@id':site+'/#org',name:'Raftaar One',url:site,logo:site+'/images/logo.png',description:DESCRIPTION,areaServed:{'@type':'Country',name:'Pakistan'},founder:{'@type':'Person',name:brand.owner},contactPoint:[{'@type':'ContactPoint',contactType:'customer support',telephone:brand.phone,email:brand.email,areaServed:'PK',availableLanguage:['English','Urdu']}]},
   {'@type':'WebSite','@id':site+'/#website',url:site,name:'Raftaar One',inLanguage:'en-PK',publisher:{'@id':site+'/#org'}}

@@ -3420,3 +3420,142 @@ body {
 .form-stack>* {
   min-width: 0;
 }
+
+/* ---- Ride screen: guest planner + phone app layout ---- */
+.ride-route-card {
+  display: grid;
+  gap: 12px;
+}
+.sheet-grip {
+  display: none;
+}
+.ride-details {
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: #fafcfc;
+}
+.ride-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: #0a8288;
+  list-style: none;
+}
+.ride-details summary::-webkit-details-marker {
+  display: none;
+}
+.ride-details[open] summary {
+  margin-bottom: 4px;
+}
+.ride-details .field {
+  margin-top: 10px;
+}
+.ride-cta-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  display: grid;
+  gap: 8px;
+  padding: 12px 0 6px;
+  background: linear-gradient(to top,#fff 78%,rgba(255,255,255,0));
+}
+.ride-cta-bar .form-note {
+  text-align: center;
+  margin: 0;
+}
+.ride-cta {
+  width: 100%;
+}
+.leaflet-tile-pane {
+  filter: saturate(.82) contrast(1.03);
+}
+
+@media (max-width:760px) {
+  .ride-page {
+    width: 100%;
+    padding-bottom: 0;
+  }
+  .ride-page>.page-head {
+    display: none;
+  }
+  .ride-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+  }
+  .ride-map-wrap {
+    width: 100%;
+    order: -1;
+    position: sticky;
+    top: 72px;
+    height: 36dvh;
+    min-height: 240px;
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+    z-index: 0;
+  }
+  .ride-panel {
+    position: relative;
+    z-index: 2;
+    margin-top: -26px;
+    border-radius: 26px 26px 0 0;
+    border-width: 1px 0 0;
+    padding: 10px 16px 12px;
+    gap: 14px;
+    box-shadow: 0 -16px 40px rgba(6,40,44,.18);
+    overflow: visible;
+    max-height: none;
+  }
+  .sheet-grip {
+    display: block;
+    width: 44px;
+    height: 5px;
+    border-radius: 5px;
+    background: #d3dcdc;
+    margin: 0 auto 4px;
+  }
+  .ride-form-head {
+    display: none;
+  }
+  .ride-route-card .place-actions {
+    position: absolute;
+    top: -6px;
+    right: 0;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+  .ride-route-card .place-actions button {
+    padding: 6px 9px;
+    white-space: nowrap;
+  }
+  .vehicle-strip {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    scroll-snap-type: x proximity;
+    padding: 2px 2px 8px;
+    margin-inline: -4px;
+    scrollbar-width: none;
+  }
+  .vehicle-strip::-webkit-scrollbar {
+    display: none;
+  }
+  .vehicle-strip button {
+    flex: 0 0 104px;
+    scroll-snap-align: start;
+    padding: 12px 8px;
+  }
+  .vehicle-strip button small {
+    display: block !important;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0a8288;
+  }
+  .ride-cta-bar {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}

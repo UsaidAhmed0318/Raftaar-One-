@@ -1,12 +1,12 @@
 'use client';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import {FiPhone,FiMinus,FiPlus,FiX,FiCheckCircle,FiClock,FiNavigation,FiUser,FiAlertTriangle} from 'react-icons/fi';
 import {browserDB} from '@/lib/supabase';
 import {rideServices,isRide,type RideService,money} from '@/lib/config';
-import {formatDuration,formatKm,phoneToE164,suggestFare,type LatLng,type Place} from '@/lib/geo';
-import {fetchRoute,reverseGeocode,rpc,type DriverOffer,type Ride,type RouteInfo} from '@/lib/rides';
+import {formatDuration,formatKm,inPakistan,phoneToE164,suggestFare,type LatLng,type Place} from '@/lib/geo';
+import {currentPosition,fetchRoute,reverseGeocode,rpc,type DriverOffer,type Ride,type RouteInfo} from '@/lib/rides';
+import {clearDraft,loadDraft,saveDraft} from '@/lib/draft';
 import {usePolling} from '@/lib/hooks';
 import {vehicleIcons} from './vehicle-icons';
 import {Avatar} from './avatar';
@@ -58,16 +58,55 @@ export default function RideRider() {
   // ---- session + active ride ------------------------------------------------
   useEffect(() => {
     (async () => {
+      let signedIn = false, active: Ride | null = null, failure = '';
       try {
-        const db = browserDB();
-        const {data:{session}} = await db.auth.getSession();
-        if (!session) { setPhase('signedout'); return; }
-        try { setPhone(localStorage.getItem('raftaar-phone') || ''); const s = new URLSearchParams(window.location.search).get('service'); if (s && isRide(s)) setService(s); } catch { /* ignore */ }
-        setRide(await rpc<Ride | null>('my_active_ride'));
-        setPhase('ready');
-      } catch (err) { setPhase('ready'); say(messageOf(err), true); }
+        const {data:{session}} = await browserDB().auth.getSession();
+        signedIn = !!session;
+        if (session) active = await rpc<Ride | null>('my_active_ride');
+      } catch (err) { failure = messageOf(err); }
+      try {
+        setPhone(localStorage.getItem('raftaar-phone') || '');
+        const wanted = new URLSearchParams(window.location.search).get('service');
+        const draft = active ? null : loadDraft();
+        if (draft) {
+          setPickup(draft.pickup); setDest(draft.dest); setPickupNote(draft.pickupNote); setDestNote(draft.destNote); setNotes(draft.notes);
+          if (draft.fare) { setFare(draft.fare); fareTouched.current = true; }
+          setService(draft.service);
+        }
+        if (wanted && isRide(wanted)) { setService(wanted); fareTouched.current = false; }
+      } catch { /* storage unavailable */ }
+      setRide(active);
+      setPhase(!signedIn && !failure ? 'signedout' : 'ready');
+      if (failure) say(failure, true);
     })();
   }, [say]);
+
+  const guest = phase === 'signedout';
+
+  // keep the planned trip on this device so a reload or sign-in never loses it
+  useEffect(() => {
+    if (phase === 'loading' || ride || finished) return;
+    const timer = setTimeout(() => saveDraft({service, pickup, dest, pickupNote, destNote, fare, notes}), 500);
+    return () => clearTimeout(timer);
+  }, [phase, ride, finished, service, pickup, dest, pickupNote, destNote, fare, notes]);
+
+  // pre-fill pickup from the device location, but only if location access was already allowed (never a surprise prompt)
+  useEffect(() => {
+    if (phase === 'loading' || ride || pickup) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const state = await navigator.permissions?.query({name:'geolocation' as PermissionName});
+        if (state?.state !== 'granted') return;
+        const here = await currentPosition();
+        if (cancelled || !inPakistan(here)) return;
+        const info = await reverseGeocode(here);
+        if (!cancelled) setPickup(current => current || {label:info.label, lat:here.lat, lng:here.lng, city:info.city});
+      } catch { /* the rider can still type or pin a pickup */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const refreshRide = useCallback(async () => {
     const next = await rpc<Ride | null>('my_active_ride');
@@ -137,10 +176,21 @@ export default function RideRider() {
   const suggested = route ? suggestFare(service, route.distance_m) : null;
   const phoneE164 = phoneToE164(phone);
   const phoneOk = /^\+923\d{9}$/.test(phoneE164);
-  const canSubmit = !!pickup && !!dest && !!route && !routing && Number.isInteger(fareNumber) && fareNumber >= 50 && fareNumber <= 500000 && phoneOk && !busy;
+  const canPlan = !!pickup && !!dest && !!route && !routing;
+  const canSubmit = canPlan && Number.isInteger(fareNumber) && fareNumber >= 50 && fareNumber <= 500000 && phoneOk && !busy;
+  function startPin(kind: 'pickup'|'dest') {
+    setPin(pin === kind ? null : kind);
+    if (pin !== kind && window.innerWidth <= 760) window.scrollTo({top:0, behavior:'smooth'});
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (guest) {
+      if (!canPlan) return;
+      saveDraft({service, pickup, dest, pickupNote, destNote, fare, notes});
+      window.location.assign('/account?next=/ride');
+      return;
+    }
     if (!canSubmit || !pickup || !dest || !route) return;
     setBusy(true); say('');
     try {
@@ -157,6 +207,7 @@ export default function RideRider() {
       });
       try { localStorage.setItem('raftaar-phone', phone); } catch { /* ignore */ }
       sessionStorage.removeItem('raftaar-ride');
+      clearDraft();
       setFinished(null); setOffers([]); setTrackRoute(null); lastTrack.current = {key:'', at:0};
       setRide(await rpc<Ride | null>('my_active_ride'));
     } catch (err) { say(messageOf(err), true); } finally { setBusy(false); }
@@ -175,7 +226,7 @@ export default function RideRider() {
     setBusy(true);
     try { await rpc('rider_cancel_ride', {p_ride:ride.id, p_reason:cancelReasons[Number(reason) - 1] || reason || 'Cancelled by rider'}); await refreshRide(); } catch (err) { say(messageOf(err), true); } finally { setBusy(false); }
   }
-  function reset() { setFinished(null); setPickup(null); setDest(null); setRoute(null); setPickupNote(''); setDestNote(''); setNotes(''); fareTouched.current = false; setFare(''); say(''); }
+  function reset() { setFinished(null); setPickup(null); setDest(null); setRoute(null); setPickupNote(''); setDestNote(''); setNotes(''); fareTouched.current = false; setFare(''); clearDraft(); say(''); }
 
   // ---- map data ---------------------------------------------------------------
   const markers = useMemo<MapMarker[]>(() => {
@@ -196,7 +247,6 @@ export default function RideRider() {
 
   // ---- render -----------------------------------------------------------------
   if (phase === 'loading') return <div className="skeleton tall"/>;
-  if (phase === 'signedout') return <div className="ride-layout"><section className="panel ride-panel"><p className="eyebrow">BOOK A RIDE</p><h2>Sign in to request a ride</h2><p style={{marginBlock:'14px 22px'}}>Create a free account or sign in. You set your own fare and choose from registered drivers who reply.</p><Link className="button" href="/account">Sign in or create account</Link></section><div className="ride-map-wrap"><LiveMap markers={[]}/></div></div>;
 
   const status = ride?.status;
   const eta = trackRoute ? formatDuration(trackRoute.duration_s) : null;
@@ -231,17 +281,23 @@ export default function RideRider() {
         {ride.notes && <p className="form-note">Note: {ride.notes}</p>}
         {(status === 'searching' || status === 'assigned' || status === 'arrived') && <button className="button secondary danger-text" onClick={() => void cancel()} disabled={busy}>Cancel ride</button>}
         {status === 'in_progress' && <p className="form-note">Enjoy your trip. Pay the driver {money(ride.agreed_fare || ride.offer)} in cash at the end.</p>}
-      </> : <form className="form-stack" onSubmit={submit} noValidate>
-        <div><p className="eyebrow">BOOK A RIDE</p><h2 style={{fontSize:30}}>Where are you going?</h2></div>
+      </> : <form className="form-stack ride-form" onSubmit={submit} noValidate>
+        <span className="sheet-grip" aria-hidden="true"/>
+        <div className="ride-form-head"><p className="eyebrow">BOOK A RIDE</p><h2 style={{fontSize:30}}>Where are you going?</h2></div>
+        <div className="ride-route-card">
+          <PlacePicker label="Pickup" kind="pickup" value={pickup} onChange={p => { setPickup(p); say(''); }} bias={pickup || dest} onPinMode={() => startPin('pickup')} pinActive={pin === 'pickup'} onError={m => say(m, true)}/>
+          <PlacePicker label="Destination" kind="dest" value={dest} onChange={p => { setDest(p); say(''); }} bias={pickup || dest} onPinMode={() => startPin('dest')} pinActive={pin === 'dest'} onError={m => say(m, true)}/>
+        </div>
+        <details className="ride-details">
+          <summary>Add house, flat or landmark details · optional</summary>
+          <label className="field"><span>At pickup</span><input value={pickupNote} onChange={e => setPickupNote(e.target.value)} maxLength={80} placeholder="For example: House 12, Street 5, green gate"/></label>
+          <label className="field"><span>At destination</span><input value={destNote} onChange={e => setDestNote(e.target.value)} maxLength={80} placeholder="For example: near the mosque, 2nd floor"/></label>
+        </details>
         <div className="vehicle-strip" role="radiogroup" aria-label="Vehicle type">
           {rideServices.map(s => { const Icon = vehicleIcons[s]; return <button type="button" role="radio" aria-checked={service === s} key={s} className={service === s ? 'selected' : ''} onClick={() => { setService(s); fareTouched.current = false; }}>
             <Icon aria-hidden="true"/><strong>{s}</strong><small>{route ? '~' + money(suggestFare(s, route.distance_m)) : noteFor[s]}</small></button>; })}
         </div>
-        <PlacePicker label="Pickup" kind="pickup" value={pickup} onChange={p => { setPickup(p); say(''); }} bias={pickup || dest} onPinMode={() => setPin(pin === 'pickup' ? null : 'pickup')} pinActive={pin === 'pickup'} onError={m => say(m, true)}/>
-        <label className="field"><span>House / flat / landmark at pickup · optional</span><input value={pickupNote} onChange={e => setPickupNote(e.target.value)} maxLength={80} placeholder="For example: House 12, Street 5, green gate"/></label>
-        <PlacePicker label="Destination" kind="dest" value={dest} onChange={p => { setDest(p); say(''); }} bias={pickup || dest} onPinMode={() => setPin(pin === 'dest' ? null : 'dest')} pinActive={pin === 'dest'} onError={m => say(m, true)}/>
-        <label className="field"><span>House / flat / landmark at destination · optional</span><input value={destNote} onChange={e => setDestNote(e.target.value)} maxLength={80} placeholder="For example: near the mosque, 2nd floor"/></label>
-        {(route || routing) && <div className="route-summary" aria-live="polite">{routing ? <span>Finding the best route…</span> : route && <><span><small>Distance</small><strong>{formatKm(route.distance_m)}</strong></span><span><small>Drive time</small><strong>{formatDuration(route.duration_s)}</strong></span>{route.estimated && <em>Estimated. Live routing is busy.</em>}</>}</div>}
+        {(route || routing) &&<div className="route-summary" aria-live="polite">{routing ? <span>Finding the best route…</span> : route && <><span><small>Distance</small><strong>{formatKm(route.distance_m)}</strong></span><span><small>Drive time</small><strong>{formatDuration(route.duration_s)}</strong></span>{route.estimated && <em>Estimated. Live routing is busy.</em>}</>}</div>}
         <div className="fare-box">
           <span className="fare-label">Your fare offer (PKR)</span>
           <div className="fare-input"><button type="button" aria-label="Decrease fare" onClick={() => { fareTouched.current = true; setFare(String(Math.max(50, (fareNumber || 100) - 10))); }}><FiMinus/></button><input inputMode="numeric" value={fare} onChange={e => { fareTouched.current = true; setFare(e.target.value.replace(/\D/g, '').slice(0, 6)); }} aria-label="Fare in PKR" placeholder="e.g. 400"/><button type="button" aria-label="Increase fare" onClick={() => { fareTouched.current = true; setFare(String((fareNumber || 90) + 10)); }}><FiPlus/></button></div>
@@ -249,11 +305,15 @@ export default function RideRider() {
           {suggested && fareNumber > 0 && fareNumber < suggested * 0.6 && <p className="fare-warn"><FiAlertTriangle/> This is well below the usual fare. Drivers may not respond.</p>}
           <small className="form-note">Drivers can accept your fare or reply with their own. You choose who comes. Payment is cash to the driver.</small>
         </div>
-        <label className="field"><span>Your mobile number</span><input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="03XX XXXXXXX" aria-invalid={phone.length > 3 && !phoneOk}/></label>
+        {!guest && <label className="field"><span>Your mobile number</span><input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="03XX XXXXXXX" aria-invalid={phone.length > 3 && !phoneOk}/></label>}
         <label className="field"><span>Note for the driver · optional</span><input value={notes} onChange={e => setNotes(e.target.value)} maxLength={300} placeholder="Luggage, waiting time, special request"/></label>
-        {pickup && <p className="nearby-note"><span className={'live-dot' + (nearby.length ? '' : ' idle')}/>{nearby.length ? nearby.length + ' registered ' + (nearby.length === 1 ? 'driver is' : 'drivers are') + ' online near this pickup' : 'No registered drivers are online near this pickup right now. You can still post the request. Drivers who come online nearby will see it.'}</p>}
-        <button className="button ride-cta" disabled={!canSubmit}>{busy ? 'Posting your request…' : 'Find a driver'}</button>
-        {!canSubmit && (pickup || dest) && <p className="form-note">{!pickup ? 'Choose a pickup from the suggestions.' : !dest ? 'Choose a destination from the suggestions.' : !route ? 'Working out the route…' : !phoneOk ? 'Enter a valid Pakistani mobile number (03XX XXXXXXX).' : !(fareNumber >= 50) ? 'Enter your fare offer (at least PKR 50).' : ''}</p>}
+        {pickup && !guest && <p className="nearby-note"><span className={'live-dot' + (nearby.length ? '' : ' idle')}/>{nearby.length ? nearby.length + ' registered ' + (nearby.length === 1 ? 'driver is' : 'drivers are') + ' online near this pickup' : 'No registered drivers are online near this pickup right now. You can still post the request. Drivers who come online nearby will see it.'}</p>}
+        <div className="ride-cta-bar">
+          <button className="button ride-cta" disabled={guest ? !canPlan : !canSubmit}>{guest ? 'Sign in to find a driver' : busy ? 'Posting your request…' : 'Find a driver'}</button>
+          {guest && canPlan && <p className="form-note">You sign in at the last step. Your trip stays saved on this device.</p>}
+          {!guest && !canSubmit && (pickup || dest) && <p className="form-note">{!pickup ? 'Choose a pickup from the suggestions.' : !dest ? 'Choose a destination from the suggestions.' : !route ? 'Working out the route…' : !phoneOk ? 'Enter a valid Pakistani mobile number (03XX XXXXXXX).' : !(fareNumber >= 50) ? 'Enter your fare offer (at least PKR 50).' : ''}</p>}
+          {guest && !canPlan && (pickup || dest) && <p className="form-note">{!pickup ? 'Choose a pickup from the suggestions.' : !dest ? 'Choose a destination from the suggestions.' : 'Working out the route…'}</p>}
+        </div>
       </form>}
       <Notice message={message} error={isError}/>
     </section>

@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
 import {motion} from 'framer-motion';
-import type {CSSProperties} from 'react';
-import {FiArrowRight,FiChevronRight,FiCoffee,FiUsers} from 'react-icons/fi';
+import {useEffect,useState,type CSSProperties} from 'react';
+import {FiArrowRight,FiChevronRight,FiClock,FiCoffee,FiUsers} from 'react-icons/fi';
+import {inPakistan,type Place} from '@/lib/geo';
+import {saveDraft} from '@/lib/draft';
 import {FaCarSide,FaBoxOpen,FaTruckPickup,FaTruck,FaBus,FaMotorcycle} from 'react-icons/fa';
 import {MdElectricRickshaw} from 'react-icons/md';
 import {MotionLink,stagger,fadeUp} from './motion';
@@ -19,7 +21,13 @@ const rows=[
  {label:'Send a parcel',sub:'Across your city',href:'/book?service=Parcel',Icon:FaBoxOpen},
  {label:'Book a loader',sub:'All loader types',href:'/book?service=Shehzore%20pickup',Icon:FaTruckPickup},
  {label:'Earn with us',sub:'Drivers, couriers, shops',href:'/partner',Icon:FiUsers}];
+function useRecentPlaces():Place[]{
+ const [recent,setRecent]=useState<Place[]>([]);
+ useEffect(()=>{try{const list=JSON.parse(localStorage.getItem('raftaar-recent-places')||'[]') as Place[];setRecent(list.filter(p=>p&&typeof p.label==='string'&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&inPakistan(p)).slice(0,3));}catch{/* no saved places */}},[]);
+ return recent;
+}
 export default function AppHome(){
+ const recent=useRecentPlaces();
  return <section className="app-home" aria-label="Services">
   <motion.h2 className="app-title" initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} transition={{duration:.6}}>Rides, delivery, loaders, buses and more</motion.h2>
   <p className="app-note">*Service availability varies by city</p>
@@ -31,6 +39,7 @@ export default function AppHome(){
   </motion.div>
   <div className="app-sheet">
    <MotionLink whileTap={{scale:.98}} href="/ride" className="app-where"><FaCarSide aria-hidden="true"/><span>Where to?</span><i aria-hidden="true"><FiArrowRight/></i></MotionLink>
+   {recent.length>0&&<ul className="app-rows" aria-label="Recent places">{recent.map(p=><li key={p.label}><Link href="/ride" onClick={()=>saveDraft({service:'Bike',pickup:null,dest:{label:p.label,lat:p.lat,lng:p.lng,city:p.city||''},pickupNote:'',destNote:'',fare:'',notes:''})}><span className="app-row-icon"><FiClock aria-hidden="true"/></span><span className="app-row-text"><strong>{p.label.split(', ')[0]}</strong><small>{p.label.split(', ').slice(1,3).join(', ')||p.city}</small></span><FiChevronRight aria-hidden="true"/></Link></li>)}</ul>}
    <ul className="app-rows">{rows.map(({label,sub,href,Icon})=><li key={label}><Link href={href}><span className="app-row-icon"><Icon aria-hidden="true"/></span><span className="app-row-text"><strong>{label}</strong><small>{sub}</small></span><FiChevronRight aria-hidden="true"/></Link></li>)}</ul>
   </div>
  </section>;

@@ -29,7 +29,14 @@ export async function uploadImage(bucket:Bucket,file:File,options:{max?:number}=
  const name=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
  const path=bucket==='products'?name:user.id+'/'+name;
  const {error}=await db.storage.from(bucket).upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000',upsert:false});
- if(error)throw new Error(error.message==='new row violates row-level security policy'?'You are not allowed to upload here.':'Upload failed. Please try again.');
+ if(error){
+  const m=error.message||'';
+  if(/bucket not found/i.test(m))throw new Error('Photo uploads are not switched on yet. Please try again later.');
+  if(/row-level security|unauthorized|not allowed/i.test(m))throw new Error('You are not allowed to upload here. Please sign in again.');
+  if(/too large|exceeded|payload/i.test(m))throw new Error('This image is too large. Please choose a smaller one.');
+  if(/mime|type/i.test(m))throw new Error('Please choose a JPG, PNG or WebP image.');
+  throw new Error('Upload failed. Check your internet and try again.');
+ }
  return path;
 }
 export async function removeImage(bucket:Bucket,path?:string|null){

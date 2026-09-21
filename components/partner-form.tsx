@@ -16,9 +16,10 @@ export default function PartnerForm(){
  async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setError(false);setMessage('');const f=new FormData(e.currentTarget);
   if(kind==='Driver'&&!vehicles.length){setError(true);setMessage('Choose at least one vehicle type you drive.');return;}
   setBusy(true);
-  try{const photoPath=file?await uploadImage('partners',file,{max:1000}):null;
+  try{let photoPath:string|null=null,photoNote='';
+   if(file){try{photoPath=await uploadImage('partners',file,{max:1000});}catch{photoNote=' Your photo could not be uploaded, so it was skipped. You can add a photo to your profile later.';}}
    await api('applications',{kind:f.get('kind'),city:f.get('city'),phone:f.get('phone'),details:f.get('details'),photoPath,...(kind==='Driver'?{vehicles,vehicleModel:f.get('vehicleModel'),vehiclePlate:f.get('vehiclePlate')}:{})});
-   setDone(true);setMessage(kind==='Driver'?'Application received. Once an admin approves it you can go online from the Driver dashboard. Track the status in My account.':'Application received. View the review status in My account. One application per account.');}
+   setDone(true);setMessage((kind==='Driver'?'Application received. Once an admin approves it you can go online from the Driver dashboard. Track the status in My account.':'Application received. View the review status in My account. One application per account.')+photoNote);}
   catch(err){setError(true);setMessage(messageOf(err));}finally{setBusy(false);}}
  return <div className="panel"><form className="form-stack" onSubmit={submit}><Field label="I would like to join as"><select name="kind" value={kind} onChange={e=>setKind(e.target.value)}>{['Driver','Courier','Merchant','Fleet operator'].map(k=><option key={k}>{k}</option>)}</select></Field><CityField/><PhoneField/>
  {kind==='Driver'&&<fieldset className="driver-fields"><legend>Ride-hailing driver details</legend>

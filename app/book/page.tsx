@@ -1,4 +1,4 @@
 import BookingForm from '@/components/booking-form';
 import {Reveal} from '@/components/motion';
-export const metadata={title:'Parcel, loader, truck & bus requests'};
+export const metadata={title:'Parcel delivery, loaders, trucks & buses',description:'Send parcels, hire Suzuki, Shehzore and Mazda loaders, book trucks for freight, or request a coach, Hiace, Coaster or mini bus anywhere in Pakistan. Send one request and an operator confirms the price.',alternates:{canonical:'/book'}};
 export default function Page(){return <div className="container"><Reveal className="page-head"><p className="eyebrow">FROM HERE TO WHAT’S NEXT</p><h1>Let’s make a move.</h1><p>Parcels, loaders, trucks, buses and coaches. Pick your vehicle and send one simple request. For rides, use the live map booking.</p></Reveal><Reveal delay={0.08}><BookingForm/></Reveal></div>;}

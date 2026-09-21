@@ -83,6 +83,33 @@ export async function POST(
         p_model: p.vehicleModel ?? "",
         p_plate: p.vehiclePlate ?? "",
       });
+      if (
+        response.error &&
+        (response.error.code === "PGRST202" ||
+          /could not find the function/i.test(response.error.message))
+      ) {
+        // Database without the rides migration: keep the application working by storing the driver details in the description.
+        if (!["Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad"].includes(p.city))
+          return fail(
+            "Applications from this city are opening soon. Please contact us on WhatsApp and we will add you.",
+            503,
+          );
+        const extra =
+          p.kind === "Driver"
+            ? " | Vehicles: " +
+              (p.vehicles ?? []).join(", ") +
+              " | Model: " +
+              (p.vehicleModel ?? "") +
+              " | Plate: " +
+              (p.vehiclePlate ?? "")
+            : "";
+        response = await db.rpc("apply_partner", {
+          p_kind: p.kind,
+          p_city: p.city,
+          p_phone: p.phone,
+          p_details: (p.details + extra).slice(0, 1000),
+        });
+      }
     } else if (action === "admin") {
       const p = statusSchema.parse(body);
       response = await db.rpc("change_status", {
@@ -120,6 +147,14 @@ export async function POST(
     } else return fail("Not found", 404);
     if (response.error) {
       const m = response.error.message;
+      if (
+        response.error.code === "PGRST202" ||
+        /could not find the function/i.test(m)
+      )
+        return fail(
+          "This feature is being switched on. Please try again in a little while, or contact us on WhatsApp.",
+          503,
+        );
       const safe = [
         "Sign in required",
         "Too many requests",
